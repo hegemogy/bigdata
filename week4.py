@@ -2,8 +2,7 @@ from pyspark.sql import SparkSession
 import random
 
 # Start Spark
-spark =
-SparkSession.builder.appName("SentenceGenerator").getOrCreate()
+spark = SparkSession.builder.appName("SentenceGenerator").getOrCreate()
 sc = spark.sparkContext
 
 # Word list
@@ -19,11 +18,19 @@ sentences = [
 # Parallelize into RDD
 sentences_rdd = sc.parallelize(sentences)
 
-# Transformation (replace with your own logic)
-transformed = sentences_rdd.map(lambda s: s.upper())
+# Emphasize some words using a dictionary and custom function.
+replacements = {"apple": "APPLE", "banana": "BANANA"}
 
-# Show some results (will go to YARN driver logs in cluster mode)
-for line in transformed.take(100):
-    print(line)
+def replace_words(s):
+    for word, replacement in replacements.items():
+        s = s.replace(word, replacement)
+    return s
+
+transformed = sentences_rdd.map(replace_words)
+
+# Save to HDFS (change the path to something you have write access to)
+output_path = "hdfs:///tmp/week4_output"
+
+transformed.saveAsTextFile(output_path)
 
 spark.stop()
